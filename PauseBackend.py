@@ -77,7 +77,7 @@ class PauseBackend(Extension, QObject):
         main_item = Application.getInstance().getMainWindow().contentItem()
         self._ui_object.setParentItem(main_item)
 
-        ui_button_object = self._ui_object.children()[1]
+        ui_button_object = self._ui_object.children()[2]
         ui_button_object.clicked.connect(self._onClicked)
 
     def _onClicked(self):

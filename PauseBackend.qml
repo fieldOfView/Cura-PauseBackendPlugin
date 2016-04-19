@@ -16,17 +16,40 @@ Item
     UM.I18nCatalog { id: catalog; name: "cura" }
 
     width: parent.width - 2 * UM.Theme.getSize("default_margin").width
-    height: childrenRect.height
+    height: UM.Theme.getSize("save_button_save_to_button").height + 3.75* UM.Theme.getSize("default_margin").height
     anchors.bottom: parent.bottom
     anchors.right: parent.right
     anchors.bottomMargin: UM.Theme.getSize("default_margin").height
     anchors.rightMargin: UM.Theme.getSize("sidebar").width - UM.Theme.getSize("default_margin").width - width
+
+    Rectangle
+    {
+        color: UM.Theme.getColor("sidebar")
+        width: parent.width
+        height: parent.height
+
+        anchors.bottom: parent.bottom
+        visible: parent.paused
+
+        Label {
+            id: statusLabel
+            anchors.top: parent.top
+            anchors.left: parent.left
+
+            color: UM.Theme.getColor("text")
+            font: UM.Theme.getFont("large")
+            text: catalog.i18nc("@label:PrintjobStatus","Slicing paused");
+        }
+    }
 
     Button
     {
         id: pauseButton
         width: UM.Theme.getSize("save_button_save_to_button").height
         height: UM.Theme.getSize("save_button_save_to_button").height
+
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
 
         onClicked:
         {
