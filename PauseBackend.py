@@ -15,10 +15,9 @@ from PyQt5.QtCore import QUrl, pyqtSlot, QObject
 
 import os.path
 
-class PauseBackend(Extension, QObject):
+class PauseBackend(QObject, Extension):
     def __init__(self, parent = None):
-        QObject.__init__(self, parent)
-        Extension.__init__(self)
+        super().__init__(parent = parent)
 
         self._additional_component = None
         self._additional_components_view = None
