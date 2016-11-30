@@ -48,6 +48,8 @@ class PauseBackend(Extension, QObject):
         backend._change_timer.timeout.disconnect(backend.slice)
         backend._terminate()
 
+        backend.backendStateChange.emit(BackendState.Error)
+
     @pyqtSlot()
     def resumeBackend(self):
         backend = Application.getInstance().getBackend()
