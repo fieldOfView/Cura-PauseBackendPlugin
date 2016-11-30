@@ -3,22 +3,13 @@
 
 from PyQt5.QtCore import QTimer
 
-from UM.i18n import i18nCatalog
 from UM.Extension import Extension
 from UM.Application import Application
 from UM.PluginRegistry import PluginRegistry
+from UM.Logger import Logger
 
-from UM.Scene.SceneNode import SceneNode
-from UM.Mesh.MeshBuilder import MeshBuilder
-from UM.Mesh.MeshData import MeshData
+from UM.Backend.Backend import BackendState
 
-from UM.Operations.AddSceneNodeOperation import AddSceneNodeOperation
-from UM.Operations.RemoveSceneNodeOperation import RemoveSceneNodeOperation
-
-from UM.Math.Vector import Vector
-from UM.Math.Color import Color
-
-from PyQt5.QtQuick import QQuickView, QQuickItem
 from PyQt5.QtQml import QQmlComponent, QQmlContext
 from PyQt5.QtCore import QUrl, pyqtSlot, QObject
 
@@ -29,59 +20,36 @@ class PauseBackend(Extension, QObject):
         QObject.__init__(self, parent)
         Extension.__init__(self)
 
-        self._ui_object = None
-        self._ui_context = None
-        self._handle_width = 10
+        self._additional_component = None
+        self._additional_components_view = None
 
-        self._controller = Application.getInstance().getController()
-        self._root = self._controller.getScene().getRoot()
-        self._node = SceneNode()
-        self._node.setMeshData(self._createMesh())
-        self._node.setName("PauseBackendStub")
+        Application.getInstance().engineCreatedSignal.connect(self._createAdditionalComponentsView)
 
-        Application.getInstance().engineCreatedSignal.connect(self._onEngineCreated)
+    def _createAdditionalComponentsView(self):
+        Logger.log("d", "Creating additional ui components for Pause Backend plugin.")
 
-    def _createMesh(self):
-        mb = MeshBuilder()
-        mb.addCube(
-            width = self._handle_width,
-            height = self._handle_width,
-            depth = self._handle_width,
-            center = Vector(150, 0, 0),
-            color = Color(1.0, 0.0, 0.0, 1.0)
-        )
-        return mb.getData()
+        path = QUrl.fromLocalFile(os.path.join(PluginRegistry.getInstance().getPluginPath("PauseBackendPlugin"), "PauseBackend.qml"))
+        self._additional_component = QQmlComponent(Application.getInstance()._engine, path)
 
-    def _addToScene(self):
-        self._node.setParent(self._root)
-        op = AddSceneNodeOperation(self._node, self._root)
-        op.push()
+        # We need access to engine (although technically we can't)
+        self._additional_components_context = QQmlContext(Application.getInstance()._engine.rootContext())
+        self._additional_components_context.setContextProperty("manager", self)
 
-        self._controller.getScene().sceneChanged.emit(self._node) #Force scene change.
+        self._additional_components_view = self._additional_component.create(self._additional_components_context)
+        if not self._additional_components_view:
+            Logger.log("w", "Could not create additional components for Pause Backend plugin.")
+            return
 
-    def _removeFromScene(self):
-        self._node.setParent(None)
-        op = RemoveSceneNodeOperation(self._node)
-        op.push()
+        Application.getInstance().addAdditionalComponent("saveButton", self._additional_components_view.findChild(QObject, "pauseResumeButton"))
 
-        self._controller.getScene().sceneChanged.emit(self._node) #Force scene change.
+    @pyqtSlot()
+    def pauseBackend(self):
+        backend = Application.getInstance().getBackend()
+        backend._change_timer.timeout.disconnect(backend.slice)
+        backend._terminate()
 
-    def _onEngineCreated(self):
-        path = QUrl.fromLocalFile(os.path.join(PluginRegistry.getInstance().getPluginPath(self.getPluginId()), "PauseBackend.qml"))
-
-        component = QQmlComponent(Application.getInstance()._engine, path)
-        self._ui_context = QQmlContext(Application.getInstance()._engine.rootContext())
-        self._ui_context.setContextProperty("manager", self)
-        self._ui_object = component.create(self._ui_context)
-
-        main_item = Application.getInstance().getMainWindow().contentItem()
-        self._ui_object.setParentItem(main_item)
-
-        ui_button_object = self._ui_object.children()[2]
-        ui_button_object.clicked.connect(self._onClicked)
-
-    def _onClicked(self):
-        if self._ui_object.property("paused"):
-            self._addToScene()
-        else:
-            self._removeFromScene()
+    @pyqtSlot()
+    def resumeBackend(self):
+        backend = Application.getInstance().getBackend()
+        backend._change_timer.timeout.connect(backend.slice)
+        backend.forceSlice()
