@@ -11,7 +11,7 @@ def getMetaData():
         "plugin": {
             "name": catalog.i18nc("@label", "Auto Save"),
             "author": "Ultimaker",
-            "version": "1.0",
+            "version": "2.3",
             "description": catalog.i18nc("@info:whatsthis", "Adds a button to pause automatic background slicing."),
             "api": 3
         },
