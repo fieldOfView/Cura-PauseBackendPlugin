@@ -1,0 +1,8 @@
+{
+    "name": "Automatic slicing toggle switch",
+    "author": "fieldOfView",
+    "version": "3.4",
+    "description": "Adds a button to the sidebar to toggle automatic slicing",
+    "api": 4,
+    "i18n-catalog": "cura"
+}

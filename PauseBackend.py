@@ -20,37 +20,16 @@ class PauseBackend(QObject, Extension):
         super().__init__(parent = parent)
 
         self._additional_component = None
-        self._additional_components_view = None
 
         Application.getInstance().engineCreatedSignal.connect(self._createAdditionalComponentsView)
 
     def _createAdditionalComponentsView(self):
         Logger.log("d", "Creating additional ui components for Pause Backend plugin.")
 
-        path = QUrl.fromLocalFile(os.path.join(PluginRegistry.getInstance().getPluginPath("PauseBackendPlugin"), "PauseBackend.qml"))
-        self._additional_component = QQmlComponent(Application.getInstance()._engine, path)
-
-        # We need access to engine (although technically we can't)
-        self._additional_components_context = QQmlContext(Application.getInstance()._engine.rootContext())
-        self._additional_components_context.setContextProperty("manager", self)
-
-        self._additional_components_view = self._additional_component.create(self._additional_components_context)
-        if not self._additional_components_view:
-            Logger.log("w", "Could not create additional components for Pause Backend plugin.")
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "PauseBackend.qml")
+        self._additional_components = Application.getInstance().createQmlComponent(path, {"manager": self})
+        if not self._additional_components:
+            Logger.log("w", "Could not create additional components for OctoPrint-connected printers.")
             return
 
-        Application.getInstance().addAdditionalComponent("saveButton", self._additional_components_view.findChild(QObject, "pauseResumeButton"))
-
-    @pyqtSlot()
-    def pauseBackend(self):
-        backend = Application.getInstance().getBackend()
-        backend._change_timer.timeout.disconnect(backend.slice)
-        backend._terminate()
-
-        backend.backendStateChange.emit(BackendState.Error)
-
-    @pyqtSlot()
-    def resumeBackend(self):
-        backend = Application.getInstance().getBackend()
-        backend._change_timer.timeout.connect(backend.slice)
-        backend.forceSlice()
+        Application.getInstance().addAdditionalComponent("saveButton", self._additional_components.findChild(QObject, "pauseResumeButton"))

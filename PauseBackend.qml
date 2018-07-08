@@ -16,7 +16,22 @@ Item
         id: pauseResumeButton
         objectName: "pauseResumeButton"
 
-        property bool paused: false
+        function boolCheck(value) //Hack to ensure a good match between python and qml.
+        {
+            if(value == "True")
+            {
+                return true
+            }else if(value == "False" || value == undefined)
+            {
+                return false
+            }
+            else
+            {
+                return value
+            }
+        }
+
+        property bool paused: !boolCheck(UM.Preferences.getValue("general/auto_slice"))
 
         height: UM.Theme.getSize("save_button_save_to_button").height
         width: height
@@ -59,11 +74,11 @@ Item
             paused = !paused
             if(paused)
             {
-                manager.pauseBackend()
+                UM.Preferences.setValue("general/auto_slice", false)
             }
             else
             {
-                manager.resumeBackend()
+                UM.Preferences.setValue("general/auto_slice", true)
             }
         }
     }
