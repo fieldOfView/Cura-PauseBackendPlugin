@@ -32,9 +32,10 @@ Item
         }
 
         property bool paused: !boolCheck(UM.Preferences.getValue("general/auto_slice"))
+        property int extraMargin: (CuraApplication.platformActivity || !paused) ? 0 : (UM.Theme.getSize("sidebar_margin").width - UM.Theme.getSize("default_margin").width)
 
         height: UM.Theme.getSize("save_button_save_to_button").height
-        width: height
+        width: height + extraMargin
 
         tooltip: paused ? catalog.i18nc("@info:tooltip", "Resume automatic slicing") : catalog.i18nc("@info:tooltip", "Pause automatic slicing")
 
@@ -49,7 +50,8 @@ Item
                            control.hovered ? UM.Theme.getColor("action_button_hovered") : UM.Theme.getColor("action_button")
                 Behavior on color { ColorAnimation { duration: 50; } }
                 anchors.left: parent.left
-                anchors.leftMargin: UM.Theme.getSize("save_button_text_margin").width / 2;
+                anchors.right: parent.right
+                anchors.rightMargin: control.extraMargin
                 width: parent.height
                 height: parent.height
 
@@ -63,7 +65,7 @@ Item
                     color: !control.enabled ? UM.Theme.getColor("action_button_disabled_text") :
                                control.pressed ? UM.Theme.getColor("action_button_active_text") :
                                control.hovered ? UM.Theme.getColor("action_button_hovered_text") : UM.Theme.getColor("action_button_text");
-                    source: pauseResumeButton.paused ? "play.svg" : "pause.svg"
+                    source: control.paused ? "play.svg" : "pause.svg"
                 }
             }
             label: Label{ }
