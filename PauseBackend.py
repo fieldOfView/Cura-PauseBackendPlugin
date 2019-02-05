@@ -26,10 +26,22 @@ class PauseBackend(QObject, Extension):
     def _createAdditionalComponentsView(self):
         Logger.log("d", "Creating additional ui components for Pause Backend plugin.")
 
-        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "PauseBackend.qml")
-        self._additional_components = Application.getInstance().createQmlComponent(path, {"manager": self})
+        try:
+            major_api_version = Application.getInstance().getAPIVersion().getMajor()
+        except AttributeError:
+            # UM.Application.getAPIVersion was added for API > 6 (Cura 4)
+            # Since this plugin version is only compatible with Cura 3.5 and newer, it is safe to assume API 5
+            major_api_version = 5
+
+        if major_api_version <= 5:
+            # In Cura 3.x, the monitor item only shows the camera stream
+            qml_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "PauseBackend3x.qml")
+        else:
+            qml_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "PauseBackend4x.qml")
+
+        self._additional_components = Application.getInstance().createQmlComponent(qml_path, {"manager": self})
         if not self._additional_components:
-            Logger.log("w", "Could not create additional components for OctoPrint-connected printers.")
+            Logger.log("w", "Could not create additional components.")
             return
 
         Application.getInstance().addAdditionalComponent("saveButton", self._additional_components.findChild(QObject, "pauseResumeButton"))
