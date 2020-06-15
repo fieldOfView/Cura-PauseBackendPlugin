@@ -34,7 +34,6 @@ class PauseBackend(QObject, Extension):
             major_api_version = 5
 
         if major_api_version <= 5:
-            # In Cura 3.x, the monitor item only shows the camera stream
             qml_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "PauseBackend3x.qml")
         else:
             qml_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "PauseBackend4x.qml")

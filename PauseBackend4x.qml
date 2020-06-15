@@ -12,8 +12,6 @@ Item
         id: pauseResumeButton
         objectName: "pauseResumeButton"
 
-        fixedWidthMode: true
-
         function boolCheck(value) //Hack to ensure a good match between python and qml.
         {
             if(value == "True")
@@ -32,10 +30,10 @@ Item
         property bool paused: !boolCheck(UM.Preferences.getValue("general/auto_slice"))
 
         height: UM.Theme.getSize("action_button").height
-        width: height
         iconSource: paused ? "play.svg" : "pause.svg"
 
         tooltip: paused ? catalog.i18nc("@info:tooltip", "Resume automatic slicing") : catalog.i18nc("@info:tooltip", "Pause automatic slicing")
+        toolTipContentAlignment: Cura.ToolTip.ContentAlignment.AlignLeft
 
         onClicked:
         {
