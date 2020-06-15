@@ -20,37 +20,28 @@ class PauseBackend(QObject, Extension):
         super().__init__(parent = parent)
 
         self._additional_component = None
-        self._additional_components_view = None
 
         Application.getInstance().engineCreatedSignal.connect(self._createAdditionalComponentsView)
 
     def _createAdditionalComponentsView(self):
         Logger.log("d", "Creating additional ui components for Pause Backend plugin.")
 
-        path = QUrl.fromLocalFile(os.path.join(PluginRegistry.getInstance().getPluginPath("PauseBackendPlugin"), "PauseBackend.qml"))
-        self._additional_component = QQmlComponent(Application.getInstance()._engine, path)
+        try:
+            major_api_version = Application.getInstance().getAPIVersion().getMajor()
+        except AttributeError:
+            # UM.Application.getAPIVersion was added for API > 6 (Cura 4)
+            # Since this plugin version is only compatible with Cura 3.5 and newer, it is safe to assume API 5
+            major_api_version = 5
 
-        # We need access to engine (although technically we can't)
-        self._additional_components_context = QQmlContext(Application.getInstance()._engine.rootContext())
-        self._additional_components_context.setContextProperty("manager", self)
+        if major_api_version <= 5:
+            # In Cura 3.x, the monitor item only shows the camera stream
+            qml_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "PauseBackend3x.qml")
+        else:
+            qml_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "PauseBackend4x.qml")
 
-        self._additional_components_view = self._additional_component.create(self._additional_components_context)
-        if not self._additional_components_view:
-            Logger.log("w", "Could not create additional components for Pause Backend plugin.")
+        self._additional_components = Application.getInstance().createQmlComponent(qml_path, {"manager": self})
+        if not self._additional_components:
+            Logger.log("w", "Could not create additional components.")
             return
 
-        Application.getInstance().addAdditionalComponent("saveButton", self._additional_components_view.findChild(QObject, "pauseResumeButton"))
-
-    @pyqtSlot()
-    def pauseBackend(self):
-        backend = Application.getInstance().getBackend()
-        backend._change_timer.timeout.disconnect(backend.slice)
-        backend._terminate()
-
-        backend.backendStateChange.emit(BackendState.Error)
-
-    @pyqtSlot()
-    def resumeBackend(self):
-        backend = Application.getInstance().getBackend()
-        backend._change_timer.timeout.connect(backend.slice)
-        backend.forceSlice()
+        Application.getInstance().addAdditionalComponent("saveButton", self._additional_components.findChild(QObject, "pauseResumeButton"))
