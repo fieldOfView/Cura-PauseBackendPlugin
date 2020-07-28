@@ -1,5 +1,5 @@
-# Copyright ;(c) 2016 Ultimaker B.V.
-# Cura is released under the terms of the AGPLv3 or higher.
+# Copyright (c) 2020 Aldo Hoeben / fieldOfView
+# PauseBackendPlugin is released under the terms of the AGPLv3 or higher.
 
 from PyQt5.QtCore import QTimer
 
