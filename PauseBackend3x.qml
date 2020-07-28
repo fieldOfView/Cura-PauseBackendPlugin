@@ -18,15 +18,22 @@ Item
         {
             if(value == "True")
             {
-                return true
-            }else if(value == "False" || value == undefined)
+                return true;
+            }
+            else if(value == "False" || value == undefined)
             {
-                return false
+                return false;
             }
             else
             {
-                return value
+                return value;
             }
+        }
+
+        function togglePaused()
+        {
+            paused = !paused;
+            UM.Preferences.setValue("general/auto_slice", !paused);
         }
 
         property bool paused: !boolCheck(UM.Preferences.getValue("general/auto_slice"))
@@ -69,17 +76,11 @@ Item
             label: Label{ }
         }
 
-        onClicked:
+        onClicked: togglePaused()
+        Action
         {
-            paused = !paused
-            if(paused)
-            {
-                UM.Preferences.setValue("general/auto_slice", false)
-            }
-            else
-            {
-                UM.Preferences.setValue("general/auto_slice", true)
-            }
+            shortcut: "Ctrl+Shift+P"
+            onTriggered: pauseResumeButton.togglePaused()
         }
     }
 

@@ -2,6 +2,7 @@ import UM 1.2 as UM
 import Cura 1.0 as Cura
 
 import QtQuick 2.2
+import QtQuick.Controls 1.1
 
 Item
 {
@@ -16,15 +17,22 @@ Item
         {
             if(value == "True")
             {
-                return true
-            }else if(value == "False" || value == undefined)
+                return true;
+            }
+            else if(value == "False" || value == undefined)
             {
-                return false
+                return false;
             }
             else
             {
-                return value
+                return value;
             }
+        }
+
+        function togglePaused()
+        {
+            paused = !paused;
+            UM.Preferences.setValue("general/auto_slice", !paused);
         }
 
         property bool paused: !boolCheck(UM.Preferences.getValue("general/auto_slice"))
@@ -35,17 +43,11 @@ Item
         tooltip: paused ? catalog.i18nc("@info:tooltip", "Resume automatic slicing") : catalog.i18nc("@info:tooltip", "Pause automatic slicing")
         toolTipContentAlignment: Cura.ToolTip.ContentAlignment.AlignLeft
 
-        onClicked:
+        onClicked: togglePaused()
+        Action
         {
-            paused = !paused
-            if(paused)
-            {
-                UM.Preferences.setValue("general/auto_slice", false)
-            }
-            else
-            {
-                UM.Preferences.setValue("general/auto_slice", true)
-            }
+            shortcut: "Ctrl+Shift+P"
+            onTriggered: pauseResumeButton.togglePaused()
         }
     }
 
