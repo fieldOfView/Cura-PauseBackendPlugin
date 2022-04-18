@@ -1,7 +1,10 @@
-# Copyright (c) 2021 Aldo Hoeben / fieldOfView
+# Copyright (c) 2022 Aldo Hoeben / fieldOfView
 # PauseBackendPlugin is released under the terms of the AGPLv3 or higher.
 
-from PyQt5.QtCore import QTimer
+try:
+    from PyQt6.QtCore import QTimer
+except ImportError:
+    from PyQt5.QtCore import QTimer
 
 from UM.Extension import Extension
 from UM.Application import Application
