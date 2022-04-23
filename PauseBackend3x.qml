@@ -33,6 +33,19 @@ Item
             }
         }
 
+        Connections
+        {
+            target: UM.Preferences
+            onPreferenceChanged:
+            {
+                if (preference !== "general/auto_slice")
+                {
+                    return;
+                }
+                pauseResumeButton.paused = !pauseResumeButton.boolCheck(UM.Preferences.getValue("general/auto_slice"));
+            }
+        }
+
         function togglePaused()
         {
             paused = !paused;
